@@ -173,7 +173,7 @@ const updateController = (req, res, next) => {
             quiz.answer=req.body.answer;
             return quiz.save();
         })
-        .then(() => indexController(req, res, next))
+        .then(() => res.redirect('/quizzes'))
         .catch((error) => `A DB Error has occurred:\n${error}`);
 
 };
@@ -201,7 +201,7 @@ const destroyController = (req, res, next) => {
     console.log("he pasado por destroy");
     let id = Number(req.params.id);
     quizzes.destroy({where: {id}})
-        .then(() => indexController(req, res, next))
+        .then(() => res.redirect('/quizzes'))
         .catch((error) => `A DB Error has occurred:\n${error}`);
 };
 
