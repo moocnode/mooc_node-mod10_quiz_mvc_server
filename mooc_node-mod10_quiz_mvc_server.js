@@ -54,12 +54,12 @@ const index = (quizzes) => `<!-- HTML view -->
     <head><title>MVC Example</title><meta charset="utf-8"></head> 
     <body> 
         <h1>MVC: Quizzes</h1> 
-        <table border="0"> `
+        <table border="0">`
     + quizzes.reduce(
         (ac, quiz) => ac +=
-            `<tr>   <td> <a href="/quizzes/${quiz.id}/play">${quiz.question}</a> </td>
-        <td><a href="/quizzes/${quiz.id}/edit"><button>Edit</button></a> </td>
-        <td><a href="/quizzes/${quiz.id}?_method=DELETE" onClick="return confirm('Delete: ${quiz.question}')">  <button>Delete</button></a> </td>
+            `<tr><td><a href="/quizzes/${quiz.id}/play">${quiz.question}</a></td>
+        <td><a href="/quizzes/${quiz.id}/edit"><button>Edit</button></a></td>
+        <td><a href="/quizzes/${quiz.id}?_method=DELETE" onClick="return confirm('Delete: ${quiz.question}')">  <button>Delete</button></a></td>
         <br>\n </tr>`,
         ""
     )
@@ -70,28 +70,35 @@ const index = (quizzes) => `<!-- HTML view -->
 
 const play = (id, question, response) => `<!-- HTML view -->
 <html>
-    <head><title>MVC Example</title><meta charset="utf-8"></head> 
+    <head><title>MVC Example</title><meta charset="utf-8">
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js" > </script>
+        <script type="text/javascript">
+        $(function()
+        {
+            $("form").submit(function(){
+                
+                $.ajax( { type:'GET',
+                    url: '/quizzes/'+ $("form").attr("id") +'/check?response=' + $('input[name=response]').val(),
+                    success: function(response){
+                      $('#msg').html(response);
+                    }
+                });
+            });
+        });
+        </script>
+    </head> 
     <body>
         <h1>MVC: Quizzes</h1>
-        <form   method="get"   action="/quizzes/${id}/check">
+        <form  id="${id}" method="get" action="javascript:void(0);"> <!-- action="/quizzes/${id}/check"> -->
             ${question}: <p>
             <input type="text" name="response" value="${response}" placeholder="Answer" />
             <input type="submit" value="Check"/> <br>
+            </p>
         </form>
+        <p>
+        <strong><div id="msg"></div></strong>
         </p>
         <a href="/quizzes"><button>Go back</button></a>
-    </body>
-</html>`;
-
-const check = (id, msg, response) => `<!-- HTML view -->
-<html>
-    <head><title>MVC Example</title><meta charset="utf-8"></head> 
-    <body>
-        <h1>MVC: Quizzes</h1>
-        <strong><div id="msg">${msg}</div></strong>
-        <p>
-        <a href="/quizzes"><button>Go back</button></a>
-        <a href="/quizzes/${id}/play?response=${response}"><button>Try again</button></a>
     </body>
 </html>`;
 
@@ -142,7 +149,8 @@ const checkController = (req, res, next) => {
             msg = (quiz.answer === response) ?
                 `Yes, "${response}" is the ${quiz.question}`
                 : `No, "${response}" is not the ${quiz.question}`;
-            return res.send(check(id, msg, response));
+            //return res.send(check(id, msg, response));
+            return res.send(msg);
         })
         .catch((error) => `A DB Error has occurred:\n${error}`);
 };
@@ -198,7 +206,6 @@ const createController = (req, res, next) => {
 const destroyController = (req, res, next) => {
 
     // .... introducir código
-    console.log("he pasado por destroy");
     let id = Number(req.params.id);
     quizzes.destroy({where: {id}})
         .then(() => res.redirect('/quizzes'))
